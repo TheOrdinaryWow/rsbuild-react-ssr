@@ -19,11 +19,11 @@ type Manifest = {
 const templateHtml = fs.readFileSync("./template.html", "utf-8");
 let manifest: Manifest;
 
-const serverRender = (rsbuildServer: RsbuildDevServer) => async (req: Request, res: Response, next: NextFunction) => {
+const serverRender = async (rsbuildServer: RsbuildDevServer) => async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const indexModule: { renderToString: (options?: ServerOptions) => string } = await rsbuildServer.environments.ssr.loadBundle("index");
+    const indexModule: { renderToString: (url: string, options?: ServerOptions) => Promise<string> } = await rsbuildServer.environments.ssr.loadBundle("index");
 
-    const markup = indexModule.renderToString();
+    const markup = await indexModule.renderToString(req.url);
 
     // biome-ignore lint/complexity/useLiteralKeys: it should be dynamic, will be added in the future
     const { js = [], css = [] } = manifest.entries["index"].initial;
@@ -65,7 +65,7 @@ export async function startDevServer() {
   const app = express();
 
   const rsbuildServer = await rsbuild.createDevServer();
-  const serverRenderMiddleware = serverRender(rsbuildServer);
+  const serverRenderMiddleware = await serverRender(rsbuildServer);
 
   app.get(/^(?!\/rsbuild-hmr|\/static).*$/, async (req, res, next) => {
     try {

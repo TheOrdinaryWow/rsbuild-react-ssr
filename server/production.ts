@@ -1,8 +1,8 @@
-import { serve } from "bun";
 import fs from "node:fs";
-import { Transform } from "node:stream";
-import type { PipeableStream, RenderToPipeableStreamOptions } from "react-dom/server";
 import { join } from "node:path";
+import { Transform } from "node:stream";
+import { serve } from "bun";
+import type { PipeableStream, RenderToPipeableStreamOptions } from "react-dom/server";
 
 // @ts-ignore: will be there, babe
 import { renderToPipeableStream as render } from "../dist/server/index.js";
@@ -24,8 +24,10 @@ const templateHtml = fs.readFileSync("./template.html", "utf-8");
 
 const { entries } = JSON.parse(fs.readFileSync("./dist/manifest.json", "utf-8")) as Manifest;
 
-function _serverRender() {
-  return render as (options?: RenderToPipeableStreamOptions) => PipeableStream;
+async function _serverRender(url: string, options?: RenderToPipeableStreamOptions) {
+  const _render = render as (url: string, options?: RenderToPipeableStreamOptions) => Promise<PipeableStream>;
+
+  return _render(url, options);
 }
 
 const hostname = process.env.HOSTNAME || "localhost";
@@ -62,8 +64,9 @@ serve({
       });
     },
   },
-  fetch() {
+  async fetch(req) {
     try {
+      // biome-ignore lint/complexity/useLiteralKeys: it should be dynamic, will be added in the future
       const { js, css } = entries["index"].initial;
       const tags = {
         script: js.map((file) => `<script src="${file}" defer></script>`).join(""),
@@ -76,7 +79,7 @@ serve({
       const { readable, writable } = new TransformStream();
       const writer = writable.getWriter();
 
-      const stream = _serverRender()({
+      const stream = await _serverRender(req.url, {
         // bootstrapScripts: js,
         onShellReady() {
           writer.write(headSection);

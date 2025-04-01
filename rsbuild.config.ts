@@ -1,8 +1,24 @@
 import { defineConfig } from "@rsbuild/core";
 import { pluginReact } from "@rsbuild/plugin-react";
+import { TanStackRouterRspack } from "@tanstack/router-plugin/rspack";
 
 export default defineConfig({
   plugins: [pluginReact()],
+  tools: {
+    htmlPlugin: false,
+    rspack: {
+      plugins: [
+        TanStackRouterRspack({
+          routesDirectory: "./src/routes",
+          generatedRouteTree: "./src/routeTree.gen.ts",
+          // routeFileIgnorePrefix: "_",
+          quoteStyle: "double",
+          semicolons: true,
+          autoCodeSplitting: true,
+        }),
+      ],
+    },
+  },
   environments: {
     web: {
       output: {
@@ -11,7 +27,7 @@ export default defineConfig({
       },
       source: {
         entry: {
-          index: "./src/index",
+          index: "./src/entry-client",
         },
       },
     },
@@ -24,12 +40,9 @@ export default defineConfig({
       },
       source: {
         entry: {
-          index: "./src/index.server",
+          index: "./src/entry-server",
         },
       },
     },
-  },
-  tools: {
-    htmlPlugin: false,
   },
 });
