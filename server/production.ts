@@ -1,28 +1,15 @@
-import { serve } from "bun";
 import fs from "node:fs";
-import { Transform } from "node:stream";
-import type { PipeableStream, RenderToPipeableStreamOptions } from "react-dom/server";
 import { join } from "node:path";
+import { Transform } from "node:stream";
+import { serve } from "bun";
+import type { PipeableStream, RenderToPipeableStreamOptions } from "react-dom/server";
 
 // @ts-ignore: will be there, babe
 import { renderToPipeableStream as render } from "../dist/server/index.js";
 
-type Manifest = {
-  allFiles: string[];
-  entries: {
-    [key: string]: {
-      assets: string[];
-      initial: {
-        js: string[];
-        css: string[];
-      };
-    };
-  };
-};
-
-const templateHtml = fs.readFileSync("./template.html", "utf-8");
-
-const { entries } = JSON.parse(fs.readFileSync("./dist/manifest.json", "utf-8")) as Manifest;
+// bundle files
+import { entries } from "../dist/manifest.json" with { type: "json" };
+import templateHtml from "../template.html" with { type: "text" };
 
 function _serverRender() {
   return render as (options?: RenderToPipeableStreamOptions) => PipeableStream;
@@ -64,13 +51,14 @@ serve({
   },
   fetch() {
     try {
+      // biome-ignore lint/complexity/useLiteralKeys: it should be dynamic, will be added in the future
       const { js, css } = entries["index"].initial;
       const tags = {
         script: js.map((file) => `<script src="${file}" defer></script>`).join(""),
         style: css.map((file) => `<link rel="stylesheet" href="${file}">`).join(""),
       };
 
-      const [beforeContent, afterContent] = templateHtml.split("<!--app-content-->");
+      const [beforeContent, afterContent] = (templateHtml as string).split("<!--app-content-->");
       const headSection = beforeContent.replace("<!--app-head-->", `${tags.style}${tags.script}`);
 
       const { readable, writable } = new TransformStream();

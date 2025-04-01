@@ -3,6 +3,9 @@ import { type RsbuildDevServer, createRsbuild, loadConfig, logger } from "@rsbui
 import express, { type Request, type Response, type NextFunction } from "express";
 import type { ServerOptions } from "react-dom/server";
 
+// bundle files
+import templateHtml from "../template.html" with { type: "text" };
+
 type Manifest = {
   allFiles: string[];
   entries: {
@@ -16,7 +19,6 @@ type Manifest = {
   };
 };
 
-const templateHtml = fs.readFileSync("./template.html", "utf-8");
 let manifest: Manifest;
 
 const serverRender = (rsbuildServer: RsbuildDevServer) => async (req: Request, res: Response, next: NextFunction) => {
@@ -31,7 +33,7 @@ const serverRender = (rsbuildServer: RsbuildDevServer) => async (req: Request, r
     const scriptTags = js.map((url) => `<script src="${url}" defer></script>`).join("\n");
     const styleTags = css.map((file) => `<link rel="stylesheet" href="${file}">`).join("\n");
 
-    const html = templateHtml.replace("<!--app-content-->", markup).replace("<!--app-head-->", `${styleTags}\n${scriptTags}`);
+    const html = (templateHtml as string).replace("<!--app-content-->", markup).replace("<!--app-head-->", `${styleTags}\n${scriptTags}`);
 
     res.writeHead(200, {
       "Content-Type": "text/html",
