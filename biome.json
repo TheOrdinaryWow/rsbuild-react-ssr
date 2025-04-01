@@ -2,7 +2,7 @@
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "organizeImports": {
     "enabled": true,
-    "ignore": ["dist/**/*"]
+    "ignore": ["dist/**/*", "src/routeTree.gen.ts"]
   },
   "vcs": {
     "enabled": true,
@@ -15,14 +15,14 @@
     "indentWidth": 2,
     "lineWidth": 160,
     "lineEnding": "lf",
-    "ignore": ["dist/**/*"]
+    "ignore": ["dist/**/*", "src/routeTree.gen.ts"]
   },
   "linter": {
     "enabled": true,
     "rules": {
       "recommended": true
     },
-    "ignore": ["dist/**/*"]
+    "ignore": ["dist/**/*", "src/routeTree.gen.ts"]
   },
   "javascript": {
     "formatter": {
