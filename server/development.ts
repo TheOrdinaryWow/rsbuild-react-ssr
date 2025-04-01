@@ -3,6 +3,9 @@ import { type RsbuildDevServer, createRsbuild, loadConfig, logger } from "@rsbui
 import express, { type Request, type Response, type NextFunction } from "express";
 import type { ServerOptions } from "react-dom/server";
 
+// bundle files
+import templateHtml from "../template.html" with { type: "text" };
+
 type Manifest = {
   allFiles: string[];
   entries: {
@@ -16,14 +19,13 @@ type Manifest = {
   };
 };
 
-const templateHtml = fs.readFileSync("./template.html", "utf-8");
 let manifest: Manifest;
 
-const serverRender = async (rsbuildServer: RsbuildDevServer) => async (req: Request, res: Response, next: NextFunction) => {
+const serverRender = (rsbuildServer: RsbuildDevServer) => async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const indexModule: { renderToString: (url: string, options?: ServerOptions) => Promise<string> } = await rsbuildServer.environments.ssr.loadBundle("index");
+    const indexModule: { renderToString: (options?: ServerOptions) => string } = await rsbuildServer.environments.ssr.loadBundle("index");
 
-    const markup = await indexModule.renderToString(req.url);
+    const markup = indexModule.renderToString();
 
     // biome-ignore lint/complexity/useLiteralKeys: it should be dynamic, will be added in the future
     const { js = [], css = [] } = manifest.entries["index"].initial;
@@ -31,7 +33,7 @@ const serverRender = async (rsbuildServer: RsbuildDevServer) => async (req: Requ
     const scriptTags = js.map((url) => `<script src="${url}" defer></script>`).join("\n");
     const styleTags = css.map((file) => `<link rel="stylesheet" href="${file}">`).join("\n");
 
-    const html = templateHtml.replace("<!--app-content-->", markup).replace("<!--app-head-->", `${styleTags}\n${scriptTags}`);
+    const html = (templateHtml as string).replace("<!--app-content-->", markup).replace("<!--app-head-->", `${styleTags}\n${scriptTags}`);
 
     res.writeHead(200, {
       "Content-Type": "text/html",
@@ -65,7 +67,7 @@ export async function startDevServer() {
   const app = express();
 
   const rsbuildServer = await rsbuild.createDevServer();
-  const serverRenderMiddleware = await serverRender(rsbuildServer);
+  const serverRenderMiddleware = serverRender(rsbuildServer);
 
   app.get(/^(?!\/rsbuild-hmr|\/static).*$/, async (req, res, next) => {
     try {

@@ -7,26 +7,12 @@ import type { PipeableStream, RenderToPipeableStreamOptions } from "react-dom/se
 // @ts-ignore: will be there, babe
 import { renderToPipeableStream as render } from "../dist/server/index.js";
 
-type Manifest = {
-  allFiles: string[];
-  entries: {
-    [key: string]: {
-      assets: string[];
-      initial: {
-        js: string[];
-        css: string[];
-      };
-    };
-  };
-};
-
-const templateHtml = fs.readFileSync("./template.html", "utf-8");
-
-const { entries } = JSON.parse(fs.readFileSync("./dist/manifest.json", "utf-8")) as Manifest;
+// bundle files
+import { entries } from "../dist/manifest.json" with { type: "json" };
+import templateHtml from "../template.html" with { type: "text" };
 
 async function _serverRender(url: string, options?: RenderToPipeableStreamOptions) {
   const _render = render as (url: string, options?: RenderToPipeableStreamOptions) => Promise<PipeableStream>;
-
   return _render(url, options);
 }
 
@@ -73,7 +59,7 @@ serve({
         style: css.map((file) => `<link rel="stylesheet" href="${file}">`).join(""),
       };
 
-      const [beforeContent, afterContent] = templateHtml.split("<!--app-content-->");
+      const [beforeContent, afterContent] = (templateHtml as string).split("<!--app-content-->");
       const headSection = beforeContent.replace("<!--app-head-->", `${tags.style}${tags.script}`);
 
       const { readable, writable } = new TransformStream();
