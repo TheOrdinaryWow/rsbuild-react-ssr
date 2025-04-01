@@ -11,7 +11,7 @@ export default defineConfig({
       },
       source: {
         entry: {
-          index: "./src/index",
+          index: "./src/entry-client",
         },
       },
     },
@@ -24,7 +24,7 @@ export default defineConfig({
       },
       source: {
         entry: {
-          index: "./src/index.server",
+          index: "./src/entry-server",
         },
       },
     },
