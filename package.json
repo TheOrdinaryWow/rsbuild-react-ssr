@@ -1,0 +1,32 @@
+{
+  "name": "rsbuild-react-ssr",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "rsbuild build",
+    "dev": "bun run server/development.ts",
+    "dev:inspect": "bun run --inspect server/development.ts",
+    "format": "biome format --write",
+    "lint": "biome lint --write",
+    "preview": "bun run server/production.ts",
+    "build:compile": "rsbuild build && bun build server/production.ts --target bun --production --minify --server-components --outfile dist/compile/main.js",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "latest",
+    "@rsbuild/core": "^1",
+    "@rsbuild/plugin-react": "^1",
+    "@types/bun": "latest",
+    "@types/express": "^5",
+    "@types/node": "^22",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19.0.4",
+    "express": "^5",
+    "rimraf": "latest",
+    "typescript": "^5.8.2"
+  }
+}
