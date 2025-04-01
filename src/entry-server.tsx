@@ -1,3 +1,4 @@
+import { createMemoryHistory } from "@tanstack/react-router";
 import { StartServer } from "@tanstack/react-start/server";
 import React from "react";
 import {
@@ -7,12 +8,7 @@ import {
   renderToString as _renderToString,
 } from "react-dom/server";
 
-import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
 import { createRouter } from "./router";
-
-// const memoryHistory = createMemoryHistory({
-//   initialEntries: [opts.url],
-// });
 
 export async function renderToPipeableStream(url: string, options?: RenderToPipeableStreamOptions) {
   const router = createRouter();
