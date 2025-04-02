@@ -2,10 +2,10 @@
   "name": "rsbuild-react-ssr",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "rsbuild build",
-    "dev": "bun run server/development.ts",
-    "dev:inspect": "bun run --inspect server/development.ts",
+    "dev": "node server/development.js",
     "format": "biome format --write",
     "lint": "biome lint --write",
     "preview": "bun run server/production.ts",

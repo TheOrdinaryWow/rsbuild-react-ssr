@@ -1,29 +1,19 @@
 import fs from "node:fs";
-import { type RsbuildDevServer, createRsbuild, loadConfig, logger } from "@rsbuild/core";
-import express, { type Request, type Response, type NextFunction } from "express";
-import type { ServerOptions } from "react-dom/server";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { createRsbuild, loadConfig, logger } from "@rsbuild/core";
+import express from "express";
 
-// bundle files
-import templateHtml from "../template.html" with { type: "text" };
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-type Manifest = {
-  allFiles: string[];
-  entries: {
-    [key: string]: {
-      assets: string[];
-      initial: {
-        js: string[];
-        css: string[];
-      };
-    };
-  };
-};
+const templateHtml = fs.readFileSync(path.resolve(__dirname, "../template.html"), "utf-8");
 
-let manifest: Manifest;
+let manifest;
 
-const serverRender = (rsbuildServer: RsbuildDevServer) => async (req: Request, res: Response, next: NextFunction) => {
+const serverRender = (rsbuildServer) => async (req, res, next) => {
   try {
-    const indexModule: { renderToString: (options?: ServerOptions) => string } = await rsbuildServer.environments.ssr.loadBundle("index");
+    const indexModule = await rsbuildServer.environments.ssr.loadBundle("index");
 
     const markup = indexModule.renderToString();
 
@@ -33,7 +23,7 @@ const serverRender = (rsbuildServer: RsbuildDevServer) => async (req: Request, r
     const scriptTags = js.map((url) => `<script src="${url}" defer></script>`).join("\n");
     const styleTags = css.map((file) => `<link rel="stylesheet" href="${file}">`).join("\n");
 
-    const html = (templateHtml as string).replace("<!--app-content-->", markup).replace("<!--app-head-->", `${styleTags}\n${scriptTags}`);
+    const html = templateHtml.replace("<!--app-content-->", markup).replace("<!--app-head-->", `${styleTags}\n${scriptTags}`);
 
     res.writeHead(200, {
       "Content-Type": "text/html",
